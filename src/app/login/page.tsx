@@ -3,43 +3,44 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const supabase = createClient()
+  const [loginInfo, setLoginInfo] = useState('')
   const router = useRouter()
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
+    setLoginInfo('Memverifikasi akun...')
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) throw error
-      await supabase.auth.getSession()
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        cache: 'no-store',
+      })
 
-      const fallbackRole = data.user.user_metadata?.role || 'user'
-      let redirectTo =
-        fallbackRole === 'master_admin'
-          ? '/dashboard/admin'
-          : fallbackRole === 'klien'
-            ? '/dashboard/klien'
-            : '/dashboard/user'
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Login gagal')
 
-      try {
-        const response = await fetch('/api/auth/redirect', { cache: 'no-store' })
-        if (response.ok) {
-          const data = await response.json()
-          redirectTo = data.redirectTo || redirectTo
-        }
-      } catch {}
+      const roleLabel =
+        result.role === 'master_admin'
+          ? 'Admin'
+          : result.role === 'klien'
+            ? 'Klien'
+            : 'User'
+
+      setLoginInfo(`Login berhasil sebagai ${roleLabel}. Mengarahkan ke ${result.redirectTo}...`)
+      toast.success(`Masuk sebagai ${roleLabel}`)
 
       router.refresh()
-      router.replace(redirectTo)
+      router.replace(result.redirectTo)
     } catch (err: any) {
+      setLoginInfo(err.message || 'Login gagal')
       toast.error(err.message || 'Login gagal')
     } finally {
       setLoading(false)
@@ -81,6 +82,9 @@ export default function LoginPage() {
           <button type="submit" disabled={loading} className="btn-primary btn w-full">
             {loading ? 'Memproses...' : 'Masuk'}
           </button>
+          {loginInfo && (
+            <p className="text-xs text-neutral-500 text-center">{loginInfo}</p>
+          )}
         </form>
         <p className="text-center text-xs text-neutral-500 mt-4">
           Belum punya akun?{' '}
