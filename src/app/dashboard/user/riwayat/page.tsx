@@ -1,15 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { formatDateTime, formatDuration } from '@/lib/utils'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 export default async function RiwayatPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
   const { data: sesiList } = await supabase
     .from('sesi_tes')
     .select('*, project:projects(nama, kode_project), paket_tes:paket_tes(nama, tampilkan_skor)')
-    .eq('user_id', user!.id)
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
   const statusBadge: Record<string, string> = {
