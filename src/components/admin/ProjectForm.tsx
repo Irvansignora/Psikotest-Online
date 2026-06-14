@@ -15,7 +15,7 @@ export default function ProjectForm({ projectId }: ProjectFormProps) {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
-  const [paketList, setPaketList] = useState<PaketTes[]>([])
+  const [paketList, setPaketList] = useState<Pick<PaketTes, 'id' | 'nama'>[]>([])
   const [form, setForm] = useState({
     nama: '',
     deskripsi: '',
