@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/shared/Sidebar'
 
 const userNav = [
@@ -13,11 +13,12 @@ export default async function UserLayout({ children }: { children: React.ReactNo
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+  const profileClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase
+  const { data: profile } = await profileClient.from('profiles').select('*').eq('id', user.id).maybeSingle()
 
   return (
     <div className="flex h-screen overflow-hidden bg-neutral-50">
-      <Sidebar navItems={userNav} role="user" userName={profile?.full_name || ''} userEmail={profile?.email || ''} />
+      <Sidebar navItems={userNav} role="user" userName={profile?.full_name || ''} userEmail={profile?.email || user.email || ''} />
       <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   )
