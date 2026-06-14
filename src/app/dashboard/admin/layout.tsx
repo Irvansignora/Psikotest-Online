@@ -17,11 +17,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!user) redirect('/login')
 
   const profileClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase
-  const { data: profile } = await profileClient
+  const { data: profile, error: profileError } = await profileClient
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .maybeSingle()
+
+  console.log('[AdminLayout] user.id:', user.id)
+  console.log('[AdminLayout] using service role client:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+  console.log('[AdminLayout] profile:', profile)
+  console.log('[AdminLayout] profileError:', profileError)
 
   if (profile?.role !== 'master_admin') redirect('/unauthorized')
 
