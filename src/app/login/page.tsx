@@ -21,19 +21,21 @@ export default function LoginPage() {
       if (error) throw error
       await supabase.auth.getSession()
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', data.user.id)
-        .single()
-
-      const role = profile?.role || 'user'
-      const redirectTo =
-        role === 'master_admin'
+      const fallbackRole = data.user.user_metadata?.role || 'user'
+      let redirectTo =
+        fallbackRole === 'master_admin'
           ? '/dashboard/admin'
-          : role === 'klien'
+          : fallbackRole === 'klien'
             ? '/dashboard/klien'
             : '/dashboard/user'
+
+      try {
+        const response = await fetch('/api/auth/redirect', { cache: 'no-store' })
+        if (response.ok) {
+          const data = await response.json()
+          redirectTo = data.redirectTo || redirectTo
+        }
+      } catch {}
 
       router.refresh()
       router.replace(redirectTo)
