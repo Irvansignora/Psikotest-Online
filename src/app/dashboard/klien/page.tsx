@@ -1,10 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { formatDate } from '@/lib/utils'
 
 export default async function KlienDashboard() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
   const [
     { count: totalProject },
@@ -12,12 +14,12 @@ export default async function KlienDashboard() {
     { count: totalSesi },
     { data: recentProjects }
   ] = await Promise.all([
-    supabase.from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', user!.id),
+    supabase.from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', user.id),
     supabase.from('project_peserta').select('*, project:projects!inner(owner_id)', { count: 'exact', head: true })
-      .eq('project.owner_id', user!.id),
+      .eq('project.owner_id', user.id),
     supabase.from('sesi_tes').select('*, project:projects!inner(owner_id)', { count: 'exact', head: true })
-      .eq('project.owner_id', user!.id).eq('status', 'selesai'),
-    supabase.from('projects').select('id, nama, status, created_at').eq('owner_id', user!.id)
+      .eq('project.owner_id', user.id).eq('status', 'selesai'),
+    supabase.from('projects').select('id, nama, status, created_at').eq('owner_id', user.id)
       .order('created_at', { ascending: false }).limit(5)
   ])
 
