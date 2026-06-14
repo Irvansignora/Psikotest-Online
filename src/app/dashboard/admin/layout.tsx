@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/shared/Sidebar'
 
 const adminNav = [
@@ -16,11 +16,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
+  const profileClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase
+  const { data: profile } = await profileClient
     .from('profiles')
     .select('*')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
 
   if (profile?.role !== 'master_admin') redirect('/unauthorized')
 
@@ -29,8 +30,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <Sidebar
         navItems={adminNav}
         role="master_admin"
-        userName={profile.full_name}
-        userEmail={profile.email}
+        userName={profile?.full_name || ''}
+        userEmail={profile?.email || user.email || ''}
       />
       <main className="flex-1 overflow-y-auto">
         {children}
