@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
@@ -10,7 +9,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [loginInfo, setLoginInfo] = useState('')
-  const router = useRouter()
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -37,8 +35,7 @@ export default function LoginPage() {
       setLoginInfo(`Login berhasil sebagai ${roleLabel}. Mengarahkan ke ${result.redirectTo}...`)
       toast.success(`Masuk sebagai ${roleLabel}`)
 
-      router.refresh()
-      router.replace(result.redirectTo)
+      window.location.href = result.redirectTo
     } catch (err: any) {
       setLoginInfo(err.message || 'Login gagal')
       toast.error(err.message || 'Login gagal')
