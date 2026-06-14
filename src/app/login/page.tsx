@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
+  const router = useRouter()
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -17,6 +19,7 @@ export default function LoginPage() {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
+      await supabase.auth.getSession()
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -25,9 +28,15 @@ export default function LoginPage() {
         .single()
 
       const role = profile?.role || 'user'
-      if (role === 'master_admin') window.location.href = '/dashboard/admin'
-      else if (role === 'klien') window.location.href = '/dashboard/klien'
-      else window.location.href = '/dashboard/user'
+      const redirectTo =
+        role === 'master_admin'
+          ? '/dashboard/admin'
+          : role === 'klien'
+            ? '/dashboard/klien'
+            : '/dashboard/user'
+
+      router.refresh()
+      router.replace(redirectTo)
     } catch (err: any) {
       toast.error(err.message || 'Login gagal')
     } finally {
