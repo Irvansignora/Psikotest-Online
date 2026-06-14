@@ -10,7 +10,7 @@ export default function PaketTesForm({ paketId }: { paketId?: string }) {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
-  const [allBanks, setAllBanks] = useState<BankSoal[]>([])
+  const [allBanks, setAllBanks] = useState<Pick<BankSoal, 'id' | 'nama' | 'kategori'>[]>([])
   const [selectedBanks, setSelectedBanks] = useState<{ bank_soal_id: string; urutan: number; jumlah_soal: string; waktu_per_bagian: string }[]>([])
   const [form, setForm] = useState({
     nama: '', deskripsi: '', instruksi: '', durasi_total: '', acak_soal: false, tampilkan_skor: false
