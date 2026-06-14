@@ -1,15 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { formatDate } from '@/lib/utils'
 
 export default async function UserDashboard() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
   const { data: peserta } = await supabase
     .from('project_peserta')
     .select('*, project:projects(id, nama, kode_project, status, tanggal_mulai, tanggal_selesai, pesan_selamat_datang, paket_tes:paket_tes(id, nama)), sesi:sesi_tes(id, status, skor_total, selesai_at)')
-    .eq('user_id', user!.id)
+    .eq('user_id', user.id)
     .order('terdaftar_at', { ascending: false })
 
   const statusColor: Record<string, string> = {
