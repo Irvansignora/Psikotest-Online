@@ -23,10 +23,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .eq('id', user.id)
     .maybeSingle()
 
-  console.log('[AdminLayout] user.id:', user.id)
-  console.log('[AdminLayout] using service role client:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
-  console.log('[AdminLayout] profile:', profile)
-  console.log('[AdminLayout] profileError:', profileError)
+  console.log('[AdminLayout DEBUG] ' + JSON.stringify({
+    userId: user.id,
+    userEmail: user.email,
+    usingServiceRole: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    profile,
+    profileError,
+  }))
 
   if (profile?.role !== 'master_admin') redirect('/unauthorized')
 
