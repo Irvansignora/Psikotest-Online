@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 
@@ -10,7 +9,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
   const supabase = createClient()
 
   async function handleLogin(e: React.FormEvent) {
@@ -27,11 +25,9 @@ export default function LoginPage() {
         .single()
 
       const role = profile?.role || 'user'
-      if (role === 'master_admin') router.push('/dashboard/admin')
-      else if (role === 'klien') router.push('/dashboard/klien')
-      else router.push('/dashboard/user')
-
-      router.refresh()
+      if (role === 'master_admin') window.location.href = '/dashboard/admin'
+      else if (role === 'klien') window.location.href = '/dashboard/klien'
+      else window.location.href = '/dashboard/user'
     } catch (err: any) {
       toast.error(err.message || 'Login gagal')
     } finally {
