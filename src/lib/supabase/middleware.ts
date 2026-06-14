@@ -36,13 +36,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && (pathname === '/login' || pathname === '/register')) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    const role = profile?.role || 'user'
+    const role = user.user_metadata?.role || 'user'
     const url = request.nextUrl.clone()
 
     if (role === 'master_admin') url.pathname = '/dashboard/admin'
@@ -50,20 +44,6 @@ export async function updateSession(request: NextRequest) {
     else url.pathname = '/dashboard/user'
 
     return NextResponse.redirect(url)
-  }
-
-  // Role-based access
-  if (user && pathname.startsWith('/dashboard/admin')) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-    if (profile?.role !== 'master_admin') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/unauthorized'
-      return NextResponse.redirect(url)
-    }
   }
 
   return supabaseResponse
